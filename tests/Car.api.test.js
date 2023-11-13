@@ -17,13 +17,13 @@ dotenv.config();
 //     });
 // });
 
-// describe("API get all cars", () => {
-//     it("success get all data cars", (done) => {
-//         request(app)
-//             .get("/v1/cars")
-//             .expect(200, done);
-//     });
-// });
+describe("API get all cars", () => {
+    it("success get all data cars", (done) => {
+        request(app)
+            .get("/v1/cars")
+            .expect(200, done);
+    });
+});
 
 describe("API get all cars", () => {
     it("success get all data cars", async () => {
