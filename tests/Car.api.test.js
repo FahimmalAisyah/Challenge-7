@@ -1,5 +1,5 @@
-const request = require('supertest');
-const app = require('../app')
+const request = require("supertest");
+const app = require("../app");
 // const baseURL = "http://localhost:8000"
 const dotenv = require("dotenv");
 dotenv.config();
@@ -17,24 +17,91 @@ dotenv.config();
 //     });
 // });
 
-describe("API get all cars", () => {
+describe("/home/irfiyanda/Documents/studi-independen-binar/Daily-Task-CH7-11-13-2023/tests/Car.api.test.js", () => {
+  let customerToken;
+  let adminToken;
+  let carData;
+  beforeAll(async () => {
+    const loginCustomer = await request(app).post("/v1/auth/login").send({
+      email: "johnny@binar.co.id",
+      password: "123456",
+    });
+    customerToken = loginCustomer.body.accessToken;
+
+    const adminCustomer = await request(app).post("/v1/auth/login").send({
+      email: "ranggawarsita@binar.co.id",
+      password: "123456",
+    });
+    adminToken = adminCustomer.body.accessToken;
+  });
+
+  describe("API get all cars", () => {
     it("success get all data cars", (done) => {
-        request(app)
-            .get("/v1/cars")
-            .expect(200, done);
+      request(app).get("/v1/cars").expect(200, done);
     });
-});
+  });
 
-describe("API get all cars", () => {
+  describe("API get all cars", () => {
     it("success get all data cars", async () => {
-        const response = await request(app).get('/v1/cars')
-        expect(response.statusCode).toBe(200);
+      const response = await request(app).get("/v1/cars");
+      carData = response.body.cars[0];
+      expect(response.statusCode).toBe(200);
     });
-});
+  });
 
-describe("API get car By ID", () => {
+  describe("API get car By ID", () => {
     it("success get data car", async () => {
-        const response = await request(app).get('/v1/cars/20')
-        expect(response.statusCode).toBe(200);
+      const response = await request(app).get("/v1/cars/20");
+      expect(response.statusCode).toBe(200);
     });
+  });
+
+  describe("API post rent car", () => {
+    it("success post rent car", async () => {
+      const rentStartedAt = "2023-11-14T08:30:00.000Z";
+      const rentEndedAt = "2023-11-16T08:30:00.000Z";
+      const response = await request(app)
+        .post(`/v1/cars/${carData.id}/rent`)
+        .send({
+          rentStartedAt,
+          rentEndedAt,
+        })
+        .set("authorization", `Bearer ${customerToken}`);
+
+      expect(response.statusCode).toBe(201);
+      expect(response.body.rentStartedAt).toBe(rentStartedAt);
+      expect(response.body.rentEndedAt).toBe(rentEndedAt);
+    });
+
+    it("Admin access forbidden post rent car", async () => {
+      const rentStartedAt = "2023-11-14T08:30:00.000Z";
+      const rentEndedAt = "2023-11-16T08:30:00.000Z";
+      const response = await request(app)
+        .post(`/v1/cars/${carData.id}/rent`)
+        .send({
+          rentStartedAt,
+          rentEndedAt,
+        })
+        .set("authorization", `Bearer ${adminToken}`);
+      expect(response.statusCode).toBe(401);
+      expect(response.body.error.message).toBe("Access forbidden!");
+    });
+
+    it("fail post rent car, car was rented", async () => {
+      const rentStartedAt = "2023-11-14T08:30:00.000Z";
+      const rentEndedAt = "2023-11-16T08:30:00.000Z";
+      const response = await request(app)
+        .post(`/v1/cars/${carData.id}/rent`)
+        .send({
+          rentStartedAt,
+          rentEndedAt,
+        })
+        .set("authorization", `Bearer ${customerToken}`);
+
+      expect(response.statusCode).toBe(422);
+      expect(response.body.error.message).toBe(
+        `${carData.name} is already rented!!`
+      );
+    });
+  });
 });

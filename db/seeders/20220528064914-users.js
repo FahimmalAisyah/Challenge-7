@@ -24,11 +24,11 @@ module.exports = {
       }
     })
 
-    const users = names.map((name) => ({
+    const users = names.map((name, index) => ({
       name,
       email: `${name.toLowerCase()}@binar.co.id`,
       encryptedPassword,
-      roleId: role.id, 
+      roleId: index > 2 ? 2 : role.id, 
       createdAt: timestamp,
       updatedAt: timestamp,
     }))
