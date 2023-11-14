@@ -39,6 +39,7 @@ class CarController extends ApplicationController {
   handleCreateCar = async (req, res) => {
     try {
       const { name, price, size, image } = req.body;
+
       if (!name || !price || !size || !image) {
         const err = new InputRequiredError(['name', 'price', 'size', 'image']);
         res.status(400).json(err);
@@ -105,15 +106,29 @@ class CarController extends ApplicationController {
     try {
       const { name, price, size, image } = req.body;
 
-      const car = this.getCarFromRequest(req);
+      const car = await this.getCarFromRequest(req);
 
-      await car.update({
-        name,
-        price,
-        size,
-        image,
-        isCurrentlyRented: false,
-      });
+      if (!car)
+        return res.status(404).json({
+          error: {
+            message: "Car not found",
+          },
+        });
+
+      const updateCar = await this.carModel.update(
+        {
+          name,
+          price,
+          size,
+          image,
+          isCurrentlyRented: false,
+        },
+        {
+          where: {
+            id: req.params.id,
+          },
+        }
+      );
 
       res.status(200).json(car);
     } catch (err) {
