@@ -104,4 +104,22 @@ describe("/home/irfiyanda/Documents/studi-independen-binar/Daily-Task-CH7-11-13-
       );
     });
   });
+  describe("API delete car By ID", () => {
+    it("success delete data car", async () => {
+      const response = await request(app)
+        .delete(`/v1/cars/20`)
+        .set("authorization", `Bearer ${adminToken}`);
+
+      expect(response.statusCode).toBe(204);
+    });
+
+    it("forbid deletion by customer", async () => {
+      const response = await request(app)
+        .delete(`/v1/cars/20`)
+        .set("authorization", `Bearer ${customerToken}`);
+
+      expect(response.statusCode).toBe(401);
+      expect(response.body.error.message).toBe("Access forbidden!");
+    });
+  });
 });
