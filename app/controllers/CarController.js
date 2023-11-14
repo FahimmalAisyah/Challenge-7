@@ -39,13 +39,11 @@ class CarController extends ApplicationController {
   handleCreateCar = async (req, res) => {
     try {
       const { name, price, size, image } = req.body;
-
       if (!name || !price || !size || !image) {
         const err = new InputRequiredError(['name', 'price', 'size', 'image']);
         res.status(400).json(err);
         return;
       }
-
       const car = await this.carModel.create({
         name,
         price,
@@ -129,8 +127,21 @@ class CarController extends ApplicationController {
   };
 
   handleDeleteCar = async (req, res) => {
-    const car = await this.carModel.destroy(req.params.id);
-    res.status(204).end();
+    try {
+      await this.carModel.destroy({
+        where: {
+          id: req.params.id,
+        },
+      });
+      res.status(204).end();
+    } catch (err) {
+      res.status(500).json({
+        error: {
+          name: err.name,
+          message: err.message,
+        },
+      });
+    }
   };
 
   getCarFromRequest(req) {
