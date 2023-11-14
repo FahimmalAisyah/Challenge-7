@@ -1,6 +1,7 @@
-const { Op } = require("sequelize");
-const ApplicationController = require("./ApplicationController");
-const { CarAlreadyRentedError } = require("../errors");
+const { Op } = require('sequelize');
+const ApplicationController = require('./ApplicationController');
+const { CarAlreadyRentedError } = require('../errors');
+const InputRequiredError = require('../errors/InputRequiredError');
 
 class CarController extends ApplicationController {
   constructor({ carModel, userCarModel, dayjs }) {
@@ -38,7 +39,11 @@ class CarController extends ApplicationController {
   handleCreateCar = async (req, res) => {
     try {
       const { name, price, size, image } = req.body;
-
+      if (!name || !price || !size || !image) {
+        const err = new InputRequiredError(['name', 'price', 'size', 'image']);
+        res.status(400).json(err);
+        return;
+      }
       const car = await this.carModel.create({
         name,
         price,
@@ -63,7 +68,7 @@ class CarController extends ApplicationController {
       let { rentStartedAt, rentEndedAt } = req.body;
       const car = await this.getCarFromRequest(req);
 
-      if (!rentEndedAt) rentEndedAt = this.dayjs(rentStartedAt).add(1, "day");
+      if (!rentEndedAt) rentEndedAt = this.dayjs(rentStartedAt).add(1, 'day');
 
       const activeRent = await this.userCarModel.findOne({
         where: {
@@ -150,7 +155,7 @@ class CarController extends ApplicationController {
     const where = {};
     const include = {
       model: this.userCarModel,
-      as: "userCar",
+      as: 'userCar',
       required: false,
     };
 
