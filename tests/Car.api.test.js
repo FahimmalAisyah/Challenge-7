@@ -77,7 +77,7 @@ describe("/home/irfiyanda/Documents/studi-independen-binar/Daily-Task-CH7-11-13-
       const rentStartedAt = "2023-11-14T08:30:00.000Z";
       const rentEndedAt = "2023-11-16T08:30:00.000Z";
       const response = await request(app)
-        .post(`/v1/cars/${carData.id}/rent`)
+        .post(`/v1/cars/20/rent`)
         .send({
           rentStartedAt,
           rentEndedAt,
@@ -99,9 +99,65 @@ describe("/home/irfiyanda/Documents/studi-independen-binar/Daily-Task-CH7-11-13-
         .set("authorization", `Bearer ${customerToken}`);
 
       expect(response.statusCode).toBe(422);
-      expect(response.body.error.message).toBe(
-        `${carData.name} is already rented!!`
-      );
+      expect(response.body.error.message).toBe(`${carData.name} is already rented!!`);
+    });
+  });
+
+  describe("API update car", () => {
+    it("Success update car", async () => {
+      const name = "Mazda updated";
+      const price = 300000;
+      const size = "SMALL";
+      const image = "https://source.unsplash.com/500x500";
+
+      const response = await request(app)
+        .put(`/v1/cars/1`)
+        .send({
+          name,
+          price,
+          size,
+          image,
+        })
+        .set("authorization", `Bearer ${adminToken}`);
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("Admin access forbidden  update car", async () => {
+      const name = "Mazda updated";
+      const price = 300000;
+      const size = "SMALL";
+      const image = "https://source.unsplash.com/500x500";
+      const response = await request(app)
+        .put(`/v1/cars/20`)
+        .send({
+          name,
+          price,
+          size,
+          image,
+        })
+        .set("authorization", `Bearer ${customerToken}`);
+      expect(response.statusCode).toBe(401);
+      expect(response.body.error.message).toBe("Access forbidden!");
+    });
+
+    it("Failed update car, car data not found", async () => {
+      const name = "Mazda updated lagi";
+      const price = 300000;
+      const size = "SMALL";
+      const image = "https://source.unsplash.com/500x500";
+
+      const response = await request(app)
+        .put(`/v1/cars/10000`)
+        .send({
+          name,
+          price,
+          size,
+          image,
+        })
+        .set("authorization", `Bearer ${adminToken}`);
+      expect(response.statusCode).toBe(404);
+      expect(response.body.error.message).toBe("Car not found");
     });
   });
 });
