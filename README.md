@@ -70,8 +70,26 @@ Development
 
 Start the server
 
+Create database for testing
+
 ```bash
-  npm run test
+ NODE_ENV=test npm run db:create
+```
+
+Migration model database for testing
+
+```bash
+ NODE_ENV=test npm run db:migrate
+```
+
+Seed data for testing
+
+```bash
+ NODE_ENV=test npm run db:seed
+```
+
+```bash
+ NODE_ENV=test npm run test
 ```
 
 ## Environment Variables
