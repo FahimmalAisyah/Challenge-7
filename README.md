@@ -68,8 +68,6 @@ Development
 
 ## Testing
 
-Start the server
-
 Create database for testing
 
 ```bash
@@ -87,6 +85,8 @@ Seed data for testing
 ```bash
  NODE_ENV=test npm run db:seed
 ```
+
+Run fo testing
 
 ```bash
  NODE_ENV=test npm run test
