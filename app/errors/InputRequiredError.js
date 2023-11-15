@@ -7,7 +7,9 @@ class InputRequiredError extends ApplicationError {
   }
 
   get details() {
-    return { fields: this.fields };
+    return {
+      fields: this.fields,
+    };
   }
 }
 
