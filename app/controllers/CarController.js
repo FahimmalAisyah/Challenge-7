@@ -1,25 +1,43 @@
-const { Op } = require("sequelize");
-const ApplicationController = require("./ApplicationController");
-const { CarAlreadyRentedError } = require("../errors");
+/* eslint-disable no-unused-vars */
+const { Op } = require('sequelize');
+
+const ApplicationController = require('./ApplicationController');
+
+const { CarAlreadyRentedError } = require('../errors');
+
+const InputRequiredError = require('../errors/InputRequiredError');
 
 class CarController extends ApplicationController {
   constructor({ carModel, userCarModel, dayjs }) {
     super();
+
     this.carModel = carModel;
+
     this.userCarModel = userCarModel;
+
     this.dayjs = dayjs;
   }
 
   handleListCars = async (req, res) => {
     const offset = this.getOffsetFromRequest(req);
+
     const limit = req.query.pageSize;
+
     const query = this.getListQueryFromRequest(req);
+
     const cars = await this.carModel.findAll(query);
-    const carCount = await this.carModel.count({ where: query.where, include: query.include });
+
+    const carCount = await this.carModel.count({
+      where: query.where,
+
+      include: query.include,
+    });
+
     const pagination = this.buildPaginationObject(req, carCount);
 
     res.status(200).json({
       cars,
+
       meta: {
         pagination,
       },
@@ -36,11 +54,23 @@ class CarController extends ApplicationController {
     try {
       const { name, price, size, image } = req.body;
 
+      if (!name || !price || !size || !image) {
+        const err = new InputRequiredError(['name', 'price', 'size', 'image']);
+
+        res.status(400).json(err);
+
+        return;
+      }
+
       const car = await this.carModel.create({
         name,
+
         price,
+
         size,
+
         image,
+
         isCurrentlyRented: false,
       });
 
@@ -49,6 +79,7 @@ class CarController extends ApplicationController {
       res.status(422).json({
         error: {
           name: err.name,
+
           message: err.message,
         },
       });
@@ -57,33 +88,42 @@ class CarController extends ApplicationController {
 
   handleRentCar = async (req, res, next) => {
     try {
-      let { rentStartedAt, rentEndedAt } = req.body;
+      const { rentStartedAt } = req.body;
+      let { rentEndedAt } = req.body;
+
       const car = await this.getCarFromRequest(req);
 
-      if (!rentEndedAt) rentEndedAt = this.dayjs(rentStartedAt).add(1, "day");
+      if (!rentEndedAt) rentEndedAt = this.dayjs(rentStartedAt).add(1, 'day');
 
       const activeRent = await this.userCarModel.findOne({
         where: {
           carId: car.id,
+
           rentStartedAt: {
             [Op.gte]: rentStartedAt,
           },
+
           rentEndedAt: {
             [Op.lte]: rentEndedAt,
           },
         },
       });
 
-      if (!!activeRent) {
+      if (activeRent) {
         const err = new CarAlreadyRentedError(car);
+
         res.status(422).json(err);
+
         return;
       }
 
       const userCar = await this.userCarModel.create({
         userId: req.user.id,
+
         carId: car.id,
+
         rentStartedAt,
+
         rentEndedAt,
       });
 
@@ -99,42 +139,64 @@ class CarController extends ApplicationController {
 
       const car = await this.getCarFromRequest(req);
 
-      if (!car)
+      if (!car) {
         return res.status(404).json({
           error: {
-            message: "Car not found",
+            message: 'Car not found',
           },
         });
+      }
 
       const updateCar = await this.carModel.update(
         {
           name,
+
           price,
+
           size,
+
           image,
+
           isCurrentlyRented: false,
         },
         {
           where: {
             id: req.params.id,
           },
-        }
+        },
       );
 
-      res.status(200).json(car);
+      return res.status(200).json(car);
     } catch (err) {
       res.status(422).json({
         error: {
           name: err.name,
+
           message: err.message,
         },
       });
     }
+    return null;
   };
 
   handleDeleteCar = async (req, res) => {
-    const car = await this.carModel.destroy(req.params.id);
-    res.status(204).end();
+    try {
+      await this.carModel.destroy({
+        where: {
+          id: req.params.id,
+        },
+      });
+
+      res.status(204).end();
+    } catch (err) {
+      res.status(500).json({
+        error: {
+          name: err.name,
+
+          message: err.message,
+        },
+      });
+    }
   };
 
   getCarFromRequest(req) {
@@ -143,17 +205,24 @@ class CarController extends ApplicationController {
 
   getListQueryFromRequest(req) {
     const { size, availableAt } = req.query;
+
     const offset = this.getOffsetFromRequest(req);
+
     const limit = req.query.pageSize || 10;
+
     const where = {};
+
     const include = {
       model: this.userCarModel,
-      as: "userCar",
+
+      as: 'userCar',
+
       required: false,
     };
 
-    if (!!size) where.size = size;
-    if (!!availableAt) {
+    if (size) where.size = size;
+
+    if (availableAt) {
       include.where = {
         rentEndedAt: {
           [Op.gte]: availableAt,
@@ -163,8 +232,11 @@ class CarController extends ApplicationController {
 
     const query = {
       include,
+
       where,
+
       limit,
+
       offset,
     };
 
