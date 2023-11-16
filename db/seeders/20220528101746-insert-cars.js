@@ -49,7 +49,7 @@ module.exports = {
 
           const timestamp = new Date();
 
-          return ({
+          return {
             name,
             price: 300000,
             size,
@@ -57,7 +57,7 @@ module.exports = {
             isCurrentlyRented: false,
             createdAt: timestamp,
             updatedAt: timestamp,
-          });
+          };
         }),
       );
     });
