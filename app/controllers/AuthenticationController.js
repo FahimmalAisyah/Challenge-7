@@ -4,6 +4,7 @@ const {
   InsufficientAccessError,
   RecordNotFoundError,
   WrongPasswordError,
+  EmailAlreadyTakenError,
 } = require('../errors');
 const { JWT_SIGNATURE_KEY } = require('../../config/application');
 
@@ -22,28 +23,26 @@ class AuthenticationController extends ApplicationController {
     CUSTOMER: 'CUSTOMER',
   };
 
-  authorize = (rolename) => {
-    return (req, res, next) => {
-      try {
-        const token = req.headers.authorization?.split('Bearer ')[1];
-        const payload = this.decodeToken(token);
+  authorize = (rolename) => (req, res, next) => {
+    try {
+      const token = req.headers.authorization?.split('Bearer ')[1];
+      const payload = this.decodeToken(token);
 
-        if (!!rolename && rolename != payload.role.name) {
-          throw new InsufficientAccessError(payload?.role?.name);
-        }
-
-        req.user = payload;
-        next();
-      } catch (err) {
-        res.status(401).json({
-          error: {
-            name: err.name,
-            message: err.message,
-            details: err.details || null,
-          },
-        });
+      if (!!rolename && rolename != payload.role.name) {
+        throw new InsufficientAccessError(payload?.role?.name);
       }
-    };
+
+      req.user = payload;
+      next();
+    } catch (err) {
+      res.status(401).json({
+        error: {
+          name: err.name,
+          message: err.message,
+          details: err.details || null,
+        },
+      });
+    }
   };
 
   handleLogin = async (req, res, next) => {
@@ -100,12 +99,9 @@ class AuthenticationController extends ApplicationController {
         },
       });
 
-      if (existingUser) {
-        res.status(500).json({
-          error: {
-            message: 'Error: Email Already Taken',
-          },
-        });
+      if (!!existingUser) {
+        const err = new EmailAlreadyTakenError(email);
+        res.status(422).json(err);
         return;
       }
 
@@ -122,13 +118,26 @@ class AuthenticationController extends ApplicationController {
         roleId: role.id,
       });
 
-      const accessToken = this.createTokenFromUser(user, role);
-
       res.status(201).json({
-        accessToken,
+        user,
       });
     } catch (err) {
       next(err);
+    }
+  };
+
+  hendeleDeleteuser = async (req, res, next) => {
+    try {
+      await this.userModel.destroy({
+        where: {
+          id: req.params.id,
+        },
+      });
+      res.status(200).json({
+        message: 'User deleted successfully',
+      });
+    } catch (error) {
+      next(error);
     }
   };
 
@@ -152,8 +161,8 @@ class AuthenticationController extends ApplicationController {
     res.status(200).json(user);
   };
 
-  createTokenFromUser = (user, role) => {
-    return this.jwt.sign(
+  createTokenFromUser = (user, role) =>
+    this.jwt.sign(
       {
         id: user.id,
         name: user.name,
@@ -166,19 +175,15 @@ class AuthenticationController extends ApplicationController {
       },
       JWT_SIGNATURE_KEY,
     );
-  };
 
-  decodeToken = (token) => {
+  decodeToken(token) {
     return this.jwt.verify(token, JWT_SIGNATURE_KEY);
-  };
+  }
 
-  encryptPassword = (password) => {
-    return this.bcrypt.hashSync(password, 10);
-  };
+  encryptPassword = (password) => this.bcrypt.hashSync(password, 10);
 
-  verifyPassword = (password, encryptedPassword) => {
-    return this.bcrypt.compareSync(password, encryptedPassword);
-  };
+  verifyPassword = (password, encryptedPassword) =>
+    this.bcrypt.compareSync(password, encryptedPassword);
 }
 
 module.exports = AuthenticationController;

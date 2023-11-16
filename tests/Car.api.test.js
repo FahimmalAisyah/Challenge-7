@@ -141,7 +141,9 @@ describe('/home/irfiyanda/Documents/studi-independen-binar/Daily-Task-CH7-11-13-
         .set('authorization', `Bearer ${customerToken}`);
 
       expect(response.statusCode).toBe(422);
-      expect(response.body.error.message).toBe(`${carData.name} is already rented!!`);
+      expect(response.body.error.message).toBe(
+        `${carData.name} is already rented!!`,
+      );
     });
   });
 

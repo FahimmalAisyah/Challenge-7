@@ -58,6 +58,7 @@ function apply(app) {
 
   app.post('/v1/auth/login', authenticationController.handleLogin);
   app.post('/v1/auth/register', authenticationController.handleRegister);
+  app.delete('/v1/auth/users/:id', authenticationController.hendeleDeleteuser);
   app.get(
     '/v1/auth/whoami',
     authenticationController.authorize(accessControl.CUSTOMER),

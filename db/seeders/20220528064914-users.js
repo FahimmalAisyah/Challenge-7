@@ -2,13 +2,7 @@ const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const { Role } = require('../../app/models');
 
-const names = [
-  'Johnny',
-  'Fikri',
-  'Brian',
-  'Ranggawarsita',
-  'Jayabaya',
-];
+const names = ['Johnny', 'Fikri', 'Brian', 'Ranggawarsita', 'Jayabaya'];
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -37,10 +31,14 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Users', {
-      name: {
-        [Op.in]: names,
+    await queryInterface.bulkDelete(
+      'Users',
+      {
+        name: {
+          [Op.in]: names,
+        },
       },
-    }, {});
+      {},
+    );
   },
 };
