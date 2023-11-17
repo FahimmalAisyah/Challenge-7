@@ -24,17 +24,20 @@
         "code": 90,
         "tabWidth": 2,
         "ignoreStrings": true
-        
       }
     ],
     "comma-dangle": ["error", "always-multiline"],
     "class-methods-use-this": ["error", { "enforceForClassFields": false }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(?:next|Sequelize)$"}],
-    "prefer-destructuring": ["error", {"object": true, "array": false}],
+    "no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^(?:next|Sequelize)$" }
+    ],
+    "prefer-destructuring": ["error", { "object": true, "array": false }],
     "linebreak-style": 0,
     "no-console": 0,
     "eqeqeq": 0,
     "no-underscore-dangle": 0,
-    "no-dynamic-require": 0
+    "no-dynamic-require": 0,
+    "arrow-body-style": ["error", "always"]
   }
 }

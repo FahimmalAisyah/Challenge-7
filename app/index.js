@@ -11,7 +11,9 @@ const app = express();
 app.use(morgan(MORGAN_FORMAT));
 app.use(cors());
 app.use(express.json());
-app.get('/documentation.json', (req, res) => res.send(swaggerDocument));
+app.get('/documentation.json', (req, res) => {
+  return res.send(swaggerDocument);
+});
 app.use('/documentation', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
 module.exports = router.apply(app);

@@ -22,26 +22,28 @@ class AuthenticationController extends ApplicationController {
     CUSTOMER: 'CUSTOMER',
   };
 
-  authorize = (rolename) => (req, res, next) => {
-    try {
-      const token = req.headers.authorization?.split('Bearer ')[1];
-      const payload = this.decodeToken(token);
+  authorize = (rolename) => {
+    return (req, res, next) => {
+      try {
+        const token = req.headers.authorization?.split('Bearer ')[1];
+        const payload = this.decodeToken(token);
 
-      if (!!rolename && rolename != payload.role.name) {
-        throw new InsufficientAccessError(payload?.role?.name);
+        if (!!rolename && rolename != payload.role.name) {
+          throw new InsufficientAccessError(payload?.role?.name);
+        }
+
+        req.user = payload;
+        next();
+      } catch (err) {
+        res.status(401).json({
+          error: {
+            name: err.name,
+            message: err.message,
+            details: err.details || null,
+          },
+        });
       }
-
-      req.user = payload;
-      next();
-    } catch (err) {
-      res.status(401).json({
-        error: {
-          name: err.name,
-          message: err.message,
-          details: err.details || null,
-        },
-      });
-    }
+    };
   };
 
   handleLogin = async (req, res, next) => {
@@ -52,9 +54,12 @@ class AuthenticationController extends ApplicationController {
         where: {
           email,
         },
-        include: [{
-          model: this.roleModel, attributes: ['id', 'name'],
-        }],
+        include: [
+          {
+            model: this.roleModel,
+            attributes: ['id', 'name'],
+          },
+        ],
       });
 
       if (!user) {
@@ -147,29 +152,33 @@ class AuthenticationController extends ApplicationController {
     res.status(200).json(user);
   };
 
-  createTokenFromUser = (user, role) => this.jwt.sign(
-    {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      image: user.image,
-      role: {
-        id: role.id,
-        name: role.name,
+  createTokenFromUser = (user, role) => {
+    return this.jwt.sign(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        role: {
+          id: role.id,
+          name: role.name,
+        },
       },
-    },
-    JWT_SIGNATURE_KEY,
-  );
+      JWT_SIGNATURE_KEY,
+    );
+  };
 
-  decodeToken(token) {
+  decodeToken = (token) => {
     return this.jwt.verify(token, JWT_SIGNATURE_KEY);
-  }
+  };
 
-  encryptPassword = (password) => this.bcrypt.hashSync(password, 10);
+  encryptPassword = (password) => {
+    return this.bcrypt.hashSync(password, 10);
+  };
 
-  verifyPassword = (password, encryptedPassword) => (
-    this.bcrypt.compareSync(password, encryptedPassword)
-  );
+  verifyPassword = (password, encryptedPassword) => {
+    return this.bcrypt.compareSync(password, encryptedPassword);
+  };
 }
 
 module.exports = AuthenticationController;
