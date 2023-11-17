@@ -16,14 +16,16 @@ module.exports = {
       },
     });
 
-    const users = names.map((name, index) => ({
-      name,
-      email: `${name.toLowerCase()}@binar.co.id`,
-      encryptedPassword,
-      roleId: index > 2 ? 2 : role.id,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    }));
+    const users = names.map((name, index) => {
+      return {
+        name,
+        email: `${name.toLowerCase()}@binar.co.id`,
+        encryptedPassword,
+        roleId: index > 2 ? 2 : role.id,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+    });
 
     await queryInterface.bulkInsert('Users', users, {});
   },

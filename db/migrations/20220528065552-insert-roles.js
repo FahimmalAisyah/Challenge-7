@@ -1,15 +1,14 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const names = [
-      'CUSTOMER',
-      'ADMIN',
-    ];
+    const names = ['CUSTOMER', 'ADMIN'];
     const timestamp = new Date();
-    const records = names.map((name) => ({
-      name,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    }));
+    const records = names.map((name) => {
+      return {
+        name,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+    });
 
     await queryInterface.bulkInsert('Roles', records, {});
   },
